@@ -154,13 +154,8 @@ module Database
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @cap.info "Loading local database config"
-      dirty_config_content = @cap.run_locally do
-        capture(:rails, "runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\"")
-      end
-      # Remove all warnings, errors and artefacts produced by bunlder, rails and other useful tools
-      config_content = dirty_config_content.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/m)[1]
-      @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
+      puts "Loading local database config"
+      @config = YAML.load(ERB.new(File.read(File.join('config', 'database.yml'))).result)[fetch(:local_rails_env).to_s]
     end
 
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
